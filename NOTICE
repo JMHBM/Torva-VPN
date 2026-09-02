@@ -1,0 +1,23 @@
+Torva VPN
+Copyright (C) 2026 JMHBM
+
+This program is free software under the GNU Affero General Public License
+version 3 or later. See LICENSE and EULA.txt.
+
+Third-party software bundled or downloaded at build time:
+
+  Tor Expert Bundle
+  Copyright (c) The Tor Project, Inc.
+  BSD-style license — https://www.torproject.org/
+
+  Electron
+  MIT License — https://www.electronjs.org/
+
+  tun2socks
+  MIT License
+
+  Wintun
+  GPL-2.0 — https://www.wintun.net/
+
+Torva is not affiliated with the Tor Project, Linus Torvalds, or any
+commercial VPN vendor.

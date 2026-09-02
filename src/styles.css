@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI Variable", "Segoe UI", system-ui,
+    sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+
+  --color-background: #090a0b;
+  --color-foreground: #e8ebe6;
+  --color-card: #121416;
+  --color-card-foreground: #e8ebe6;
+  --color-popover: #1a1d20;
+  --color-popover-foreground: #e8ebe6;
+  --color-primary: #d5dbd3;
+  --color-primary-foreground: #0c0d0c;
+  --color-secondary: #1c2023;
+  --color-secondary-foreground: #e8ebe6;
+  --color-muted: #1c2023;
+  --color-muted-foreground: #8b9289;
+  --color-accent: #23282b;
+  --color-accent-foreground: #e8ebe6;
+  --color-destructive: #c07070;
+  --color-destructive-foreground: #1a0c0c;
+  --color-border: #262a2e;
+  --color-input: #2a2f33;
+  --color-ring: #b8c4b6;
+  --color-connected: #7aa67f;
+  --color-connected-dim: #3d5c42;
+  --color-connected-foreground: #0c140e;
+  --color-caution: #c4a574;
+  --color-desktop: #070808;
+  --color-taskbar: #0e1012;
+  --color-window-close: #c42b1c;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius: 12px;
+
+  --shadow-border: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-border-hover: 0 0 0 1px rgb(255 255 255 / 0.13);
+  --shadow-window:
+    0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 64px -16px rgb(0 0 0 / 0.65);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-stagger: 40ms;
+  --motion-micro: 80ms;
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+  --motion-medium: 350ms;
+  --motion-slow: 400ms;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+    background: var(--color-desktop);
+    color: var(--color-foreground);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-connected) 35%, transparent);
+    color: var(--color-foreground);
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes log-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onion-spin {
+  animation: ring-spin 12s linear infinite;
+}
+
+.onion-spin-rev {
+  animation: ring-spin 18s linear infinite reverse;
+}
+
+.pulse-ring {
+  animation: pulse-ring 2.2s var(--ease-smooth-out) infinite;
+}
+
+.scan-sweep {
+  animation: scan 3.6s linear infinite;
+}
+
+.dash-flow {
+  animation: dash-flow 1.2s linear infinite;
+}
+
+.log-line {
+  animation: log-in var(--motion-fast) var(--ease-smooth-out) both;
+}
+
+.desktop-grain {
+  background-color: var(--color-desktop);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgb(122 166 127 / 0.07), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 80% 110%, rgb(184 196 182 / 0.04), transparent 45%);
+}
+
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.12) transparent;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.12);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.torva-window {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+}
+
+@media (min-width: 640px) {
+  .torva-window {
+    height: min(45rem, calc(100dvh - 5.5rem));
+    max-width: 64rem;
+    border-radius: var(--radius-xl);
+  }
+
+  .torva-window.is-max {
+    height: 100%;
+    max-width: none;
+    border-radius: var(--radius-lg);
+  }
+}
+
+.torva-rail {
+  width: 4.5rem;
+}
+
+html.torva-native,
+html.torva-native body,
+html.torva-native #root {
+  height: 100%;
+  min-height: 100%;
+  background: var(--color-card);
+  overflow: hidden;
+}
+

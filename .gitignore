@@ -1,0 +1,12 @@
+node_modules/
+desktop/.cache/
+desktop/dist/
+desktop/dist-renderer/
+artifacts/
+*.log
+.DS_Store
+Thumbs.db
+dist/
+.vscode/
+.idea/
+*.local
