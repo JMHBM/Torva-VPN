@@ -14,7 +14,7 @@ When you click Connect, Torva:
   - sets the Windows user proxy to Tor’s local HTTP tunnel (`127.0.0.1:9080`), or
   - if you approve an administrator prompt, may create a Wintun adapter and firewall rules so more traffic goes through Tor
 
-When you disconnect or quit, Torva restores the previous Windows proxy settings and flushes DNS. A `Restore-Internet.bat` helper is included if something is left behind after a crash.
+When you disconnect or quit, Torva restores the previous Windows proxy settings and flushes DNS.
 
 ## Data Torva stores on your device
 

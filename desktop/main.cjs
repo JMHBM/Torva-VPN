@@ -420,16 +420,6 @@ public class TorvaWinINet {
   child.unref();
 }
 
-function dropRestoreShortcut() {
-  try {
-    const src = path.join(path.dirname(process.execPath), "Restore-Internet.bat");
-    const dest = path.join(app.getPath("desktop"), "Restore-Internet.bat");
-    if (fs.existsSync(src) && !fs.existsSync(dest)) fs.copyFileSync(src, dest);
-  } catch {
-    /* ignore */
-  }
-}
-
 function orHostsPath() {
   return userDir("or-hosts.txt");
 }
@@ -1145,13 +1135,6 @@ function selfInstallIfNeeded() {
     return false;
   }
   writeAppShortcuts(destExe);
-  const restoreSrc = path.join(dest, "Restore-Internet.bat");
-  const restoreDest = path.join(app.getPath("desktop"), "Restore-Internet.bat");
-  try {
-    if (fs.existsSync(restoreSrc)) fs.copyFileSync(restoreSrc, restoreDest);
-  } catch {
-    /* ignore */
-  }
   spawn(destExe, [], {
     detached: true,
     stdio: "ignore",
@@ -1284,7 +1267,6 @@ app.whenReady().then(async () => {
   }
   restoreProxySync();
   await maybeRestoreProxyOnLaunch();
-  dropRestoreShortcut();
   createWindow();
   createTray();
   writeShortcuts();

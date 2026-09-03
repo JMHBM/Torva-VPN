@@ -19,7 +19,6 @@ if not exist "%DEST%\Torva.exe" (
   notepad "%LOG%"
   exit /b 1
 )
-if exist "%DEST%\Restore-Internet.bat" copy /Y "%DEST%\Restore-Internet.bat" "%USERPROFILE%\Desktop\Restore-Internet.bat" >> "%LOG%" 2>&1
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ws = New-Object -ComObject WScript.Shell;" ^
   "$dest = $env:LOCALAPPDATA + '\Programs\TorvaVPN\Torva.exe';" ^

@@ -21,7 +21,7 @@ When you Connect, the Software may:
   • start tor.exe and related helpers;
   • set the Windows user proxy to a local Tor HTTP tunnel;
   • optionally create a Wintun virtual adapter, routes, DNS rules, and firewall rules if you grant administrator permission.
-Quitting Torva is designed to restore those settings. You also receive Restore-Internet.bat. You are responsible for returning your system to a working state if a crash or force-quit leaves routing changed.
+Quitting Torva is designed to restore those settings. You are responsible for returning your system to a working state if a crash or force-quit leaves routing changed.
 
 6. No warranty
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. Tor circuits can fail. Bridges can fail. Windows may still leak traffic, especially UDP, IPv6, and apps that ignore the system proxy. A “connected” status does not mean you are anonymous or untraceable.

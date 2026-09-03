@@ -21,7 +21,7 @@ BG = (18, 20, 22, 255)
 FG = (213, 219, 211, 255)
 MUTED = (139, 146, 137, 255)
 
-SKIP_NAMES = {"install.cmd", "uninstall.cmd"}
+SKIP_NAMES = {"install.cmd", "uninstall.cmd", "restore-internet.bat"}
 FOOTPRINT = {"appxblockmap.xml", "[content_types].xml", "appxsignature.p7x"}
 
 CONTENT_DEFAULTS = {

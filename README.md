@@ -18,9 +18,7 @@ Torva is an independent project. It is **not** affiliated with the Tor Project, 
 
 **Microsoft Store (planned):** one-time **$9.99**, no ads, no subscriptions, free lifetime updates. Upload `artifacts/TorvaVPN.msix` — see [STORE.md](STORE.md).
 
-**Sideload:** `TorvaVPN-Setup.exe` copies itself to `%LOCALAPPDATA%\Programs\TorvaVPN` and writes Desktop and Start Menu shortcuts.
-
-If the internet is stuck after a crash, run `Restore-Internet.bat`.
+**Sideload:** `TorvaVPN-Setup.exe` copies itself to `%LOCALAPPDATA%\Programs\TorvaVPN` and writes Desktop and Start Menu shortcuts. Quit restores the Windows proxy.
 
 ## Build from source
 

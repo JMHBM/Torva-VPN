@@ -97,7 +97,6 @@ pngToIco(join(root, "public", "icon-512.png"), join(resources, "icon.ico"));
 copyFileSync(join(root, "public", "icon-512.png"), join(resources, "icon.png"));
 copyFileSync(join(resources, "icon.ico"), join(appDir, "icon.ico"));
 copyFileSync(join(dir, "uninstall.cmd"), join(appDir, "uninstall.cmd"));
-copyFileSync(join(dir, "Restore-Internet.bat"), join(appDir, "Restore-Internet.bat"));
 copyFileSync(join(dir, "install.cmd"), join(appDir, "install.cmd"));
 copyFileSync(join(dir, "EULA.txt"), join(appDir, "EULA.txt"));
 
@@ -122,11 +121,7 @@ writeFileSync(
     "Connect starts Tor. Approve the administrator prompt for Wintun so all",
     "TCP goes through Tor, DNS uses Tor DNSPort, and other UDP is dropped.",
     "Without administrator, Torva falls back to a stream-isolated Windows proxy.",
-    "The installer copies Torva to %LOCALAPPDATA%\\Programs\\TorvaVPN and puts",
-    "shortcuts on the Desktop and Start Menu. Quit from the tray, then relaunch",
-    "from those shortcuts — do not delete AppData to start it again.",
-    "Quitting always restores your internet. If anything goes wrong, run",
-    "Restore-Internet.bat (also copied to Desktop).",
+    "Quitting always restores your internet.",
     "",
     "This installer bundles the Tor Expert Bundle (BSD license).",
     "https://www.torproject.org/",
