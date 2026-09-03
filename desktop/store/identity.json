@@ -1,8 +1,10 @@
 {
   "name": "JMHBM.TorvaVPN",
-  "publisher": "CN=JMHBM",
+  "publisher": "CN=306E440D-49E4-437D-8025-5DE970A6DDCF",
   "publisherDisplayName": "JMHBM",
   "displayName": "Torva VPN",
   "version": "1.0.0.0",
-  "description": "Route Windows traffic through the Tor network with a one-click VPN-style client. No ads. No subscriptions. Lifetime updates."
+  "description": "Route Windows traffic through the Tor network with a one-click VPN-style client. No ads. No subscriptions. Lifetime updates.",
+  "packageFamilyName": "JMHBM.TorvaVPN_4x028c9g2qzze",
+  "storeId": "9NCQ0FJW2MLV"
 }

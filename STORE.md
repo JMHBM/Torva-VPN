@@ -4,14 +4,15 @@ One-time purchase **$9.99**. No ads. No subscriptions. Store updates are free fo
 
 ## Before you upload
 
-1. Open [Partner Center](https://partner.microsoft.com/) and reserve the name **Torva VPN**.
-2. Copy the package identity Partner Center assigns:
-   - Package/Identity/Name
-   - Publisher `CN={GUID}`
-   - Publisher display name
-3. Paste those values into [`desktop/store/identity.json`](desktop/store/identity.json).
-4. Rebuild so `artifacts/TorvaVPN.msix` matches that identity.
-5. Upload the **unsigned** `.msix`. The Store signs it. Do not sideload-sign it with a test cert and then upload that signature.
+1. Open [Partner Center](https://partner.microsoft.com/) — product **Torva VPN** is reserved (`9NCQ0FJW2MLV`).
+2. Identity is already stamped in [`desktop/store/identity.json`](desktop/store/identity.json):
+
+```
+Name: JMHBM.TorvaVPN
+Publisher: CN=306E440D-49E4-437D-8025-5DE970A6DDCF
+PublisherDisplayName: JMHBM
+Package Family Name: JMHBM.TorvaVPN_4x028c9g2qzze
+```
 
 ## Package capabilities (justification for certification)
 
