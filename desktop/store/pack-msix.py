@@ -9,9 +9,10 @@ import hashlib
 import json
 import os
 import shutil
+import struct
 import time
 import xml.sax.saxutils
-import zipfile
+import zlib
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -249,18 +250,48 @@ def collect_payload(app_dir: Path, extra_files: dict[str, Path]) -> list[tuple[s
     return items
 
 
-def block_hashes(path: Path) -> tuple[int, list[tuple[bytes, int]]]:
-    size = path.stat().st_size
-    blocks = []
-    with path.open("rb") as fh:
-        while True:
-            chunk = fh.read(BLOCK)
-            if not chunk:
-                break
-            blocks.append((hashlib.sha256(chunk).digest(), len(chunk)))
-    if not blocks:
-        blocks.append((hashlib.sha256(b"").digest(), 0))
-    return size, blocks
+def deflate_raw(data: bytes) -> bytes:
+    co = zlib.compressobj(9, zlib.DEFLATED, -15)
+    return co.compress(data) + co.flush(zlib.Z_FINISH)
+
+
+def split_blocks(data: bytes) -> list[bytes]:
+    if not data:
+        return [b""]
+    return [data[i : i + BLOCK] for i in range(0, len(data), BLOCK)]
+
+
+def prepare_file(path: Path) -> dict:
+    raw = path.read_bytes()
+    chunks = split_blocks(raw)
+    co = zlib.compressobj(9, zlib.DEFLATED, -15)
+    compressed_chunks: list[bytes] = []
+    for i, chunk in enumerate(chunks):
+        piece = co.compress(chunk)
+        if i == len(chunks) - 1:
+            piece += co.flush(zlib.Z_FINISH)
+        else:
+            piece += co.flush(zlib.Z_SYNC_FLUSH)
+        compressed_chunks.append(piece)
+    payload = b"".join(compressed_chunks)
+    use_deflate = len(payload) < len(raw)
+    if use_deflate:
+        blocks = [
+            (hashlib.sha256(c).digest(), len(d), True) for c, d in zip(chunks, compressed_chunks)
+        ]
+        return {
+            "raw": raw,
+            "payload": payload,
+            "method": 8,
+            "blocks": blocks,
+        }
+    blocks = [(hashlib.sha256(c).digest(), len(c), False) for c in chunks]
+    return {
+        "raw": raw,
+        "payload": raw,
+        "method": 0,
+        "blocks": blocks,
+    }
 
 
 def content_types_xml(rels: list[str]) -> str:
@@ -275,53 +306,54 @@ def content_types_xml(rels: list[str]) -> str:
         if ext not in CONTENT_DEFAULTS:
             CONTENT_DEFAULTS[ext] = "application/octet-stream"
         exts.add(ext)
-    lines = [
-        '<?xml version="1.0" encoding="utf-8"?>',
+    parts = [
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
     ]
-    for ext in sorted(exts):
-        lines.append(
-            f'  <Default Extension="{xml.sax.saxutils.escape(ext)}" ContentType="{CONTENT_DEFAULTS[ext]}" />'
+    for ext in sorted(exts | {"xml"}):
+        ctype = (
+            "application/vnd.ms-appx.manifest+xml"
+            if ext == "xml"
+            else CONTENT_DEFAULTS.get(ext, "application/octet-stream")
         )
-    lines.append('  <Default Extension="xml" ContentType="application/vnd.ms-appx.manifest+xml" />')
-    lines.append(
-        '  <Override PartName="/AppxManifest.xml" ContentType="application/vnd.ms-appx.manifest+xml" />'
-    )
-    lines.append(
-        '  <Override PartName="/AppxBlockMap.xml" ContentType="application/vnd.ms-appx.blockmap+xml" />'
+        parts.append(f'<Default Extension="{xml.sax.saxutils.escape(ext)}" ContentType="{ctype}"/>')
+    parts.append(
+        '<Override PartName="/AppxBlockMap.xml" ContentType="application/vnd.ms-appx.blockmap+xml"/>'
     )
     for part in overrides:
-        lines.append(
-            f'  <Override PartName="{xml.sax.saxutils.escape(part)}" ContentType="application/octet-stream" />'
+        parts.append(
+            f'<Override PartName="{xml.sax.saxutils.escape(part)}" ContentType="application/octet-stream"/>'
         )
-    lines.append("</Types>")
-    return "\n".join(lines) + "\n"
+    parts.append("</Types>")
+    return "".join(parts)
 
 
-def blockmap_xml(files: list[tuple[str, Path, int]]) -> str:
-    """files: (backslash name, path, lfh_size)"""
-    lines = [
+def blockmap_xml(entries: list[dict]) -> str:
+    parts = [
         '<?xml version="1.0" encoding="UTF-8" standalone="no"?>',
-        '<BlockMap xmlns="http://schemas.microsoft.com/appx/2010/blockmap" HashMethod="http://www.w3.org/2001/04/xmlenc#sha256">',
+        '<BlockMap xmlns="http://schemas.microsoft.com/appx/2010/blockmap" xmlns:b4="http://schemas.microsoft.com/appx/2021/blockmap" IgnorableNamespaces="b4" HashMethod="http://www.w3.org/2001/04/xmlenc#sha256">',
     ]
-    for name, path, lfh in files:
-        size, blocks = block_hashes(path)
-        lines.append(
-            f'  <File Name="{xml.sax.saxutils.escape(name)}" Size="{size}" LfhSize="{lfh}">'
-        )
-        for digest, length in blocks:
+    for e in entries:
+        name = xml.sax.saxutils.escape(e["bm_name"])
+        parts.append(f'<File Name="{name}" Size="{e["usize"]}" LfhSize="{e["lfh"]}">')
+        for digest, size, deflated in e["blocks"]:
             b64 = base64.b64encode(digest).decode("ascii")
-            if length == BLOCK:
-                lines.append(f'    <Block Hash="{b64}"/>')
+            if deflated:
+                parts.append(f'<Block Hash="{b64}" Size="{size}"/>')
+            elif size == BLOCK:
+                parts.append(f'<Block Hash="{b64}"/>')
             else:
-                lines.append(f'    <Block Hash="{b64}" Size="{length}"/>')
-        lines.append("  </File>")
-    lines.append("</BlockMap>")
-    return "\n".join(lines) + "\n"
+                parts.append(f'<Block Hash="{b64}"/>')
+        parts.append("</File>")
+    parts.append("</BlockMap>")
+    return "".join(parts)
 
 
-def local_header_size(name_bytes: bytes, extra: bytes = b"") -> int:
-    return 30 + len(name_bytes) + len(extra)
+def dos_datetime() -> tuple[int, int]:
+    t = time.localtime()
+    dtime = (t.tm_hour << 11) | (t.tm_min << 5) | (t.tm_sec // 2)
+    ddate = ((t.tm_year - 1980) << 9) | (t.tm_mon << 5) | t.tm_mday
+    return dtime, ddate
 
 
 def pack_msix(payload: list[tuple[str, Path]], dest: Path) -> None:
@@ -329,48 +361,118 @@ def pack_msix(payload: list[tuple[str, Path]], dest: Path) -> None:
     if dest.exists():
         dest.unlink()
 
-    hashed: list[tuple[str, Path, int, bytes]] = []
+    prepared: list[dict] = []
     for rel, path in payload:
         if Path(rel).name.lower() in FOOTPRINT:
             continue
-        zip_name = rel.replace("/", "\\")
-        name_bytes = zip_name.encode("utf-8")
-        lfh = local_header_size(name_bytes)
-        hashed.append((zip_name, path, lfh, name_bytes))
+        zip_name = rel.replace("\\", "/")
+        bm_name = zip_name.replace("/", "\\")
+        info = prepare_file(path)
+        name_b = zip_name.encode("utf-8")
+        lfh = 30 + len(name_b)
+        crc = zlib.crc32(info["raw"]) & 0xFFFFFFFF
+        prepared.append(
+            {
+                "zip_name": zip_name,
+                "bm_name": bm_name,
+                "name_b": name_b,
+                "lfh": lfh,
+                "crc": crc,
+                "usize": len(info["raw"]),
+                "csize": len(info["payload"]),
+                "method": info["method"],
+                "payload": info["payload"],
+                "blocks": info["blocks"],
+            }
+        )
 
-    blockmap = blockmap_xml([(n, p, l) for n, p, l, _ in hashed])
-    types = content_types_xml([n.replace("\\", "/") for n, *_ in hashed])
+    blockmap = blockmap_xml(prepared)
+    types = content_types_xml([e["zip_name"] for e in prepared])
+    meta = [
+        ("AppxBlockMap.xml", blockmap.encode("utf-8")),
+        ("[Content_Types].xml", types.encode("utf-8")),
+    ]
 
-    tmp_dir = dest.parent / ".msix-meta"
-    if tmp_dir.exists():
-        shutil.rmtree(tmp_dir)
-    tmp_dir.mkdir()
-    (tmp_dir / "AppxBlockMap.xml").write_text(blockmap, encoding="utf-8")
-    (tmp_dir / "[Content_Types].xml").write_text(types, encoding="utf-8")
+    dtime, ddate = dos_datetime()
+    central: list[bytes] = []
+    offset = 0
+    with dest.open("wb") as fh:
+        def write_entry(name: str, name_b: bytes, method: int, crc: int, payload: bytes, usize: int) -> int:
+            nonlocal offset
+            csize = len(payload)
+            local = struct.pack(
+                "<IHHHHHIIIHH",
+                0x04034B50,
+                20,
+                0,
+                method,
+                dtime,
+                ddate,
+                crc,
+                csize,
+                usize,
+                len(name_b),
+                0,
+            )
+            fh.write(local)
+            fh.write(name_b)
+            fh.write(payload)
+            cd = struct.pack(
+                "<IHHHHHHIIIHHHHHII",
+                0x02014B50,
+                20,  # made by: MS-DOS, v2.0
+                20,
+                0,
+                method,
+                dtime,
+                ddate,
+                crc,
+                csize,
+                usize,
+                len(name_b),
+                0,
+                0,
+                0,
+                0,
+                0,
+                offset,
+            )
+            central.append(cd + name_b)
+            start = offset
+            offset += len(local) + len(name_b) + csize
+            return start
 
-    with zipfile.ZipFile(dest, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
-        for zip_name, path, _lfh, name_bytes in hashed:
-            info = zipfile.ZipInfo(zip_name)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.create_system = 0
-            info.create_version = 20
-            info.extract_version = 20
-            info.flag_bits = 0x0800
-            now = time.localtime()[:6]
-            info.date_time = now
-            data = path.read_bytes()
-            zf.writestr(info, data)
-        for meta in ("AppxBlockMap.xml", "[Content_Types].xml"):
-            info = zipfile.ZipInfo(meta)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.create_system = 0
-            info.create_version = 20
-            info.extract_version = 20
-            info.flag_bits = 0x0800
-            info.date_time = time.localtime()[:6]
-            zf.writestr(info, (tmp_dir / meta).read_bytes())
+        for e in prepared:
+            write_entry(e["zip_name"], e["name_b"], e["method"], e["crc"], e["payload"], e["usize"])
+        for name, data in meta:
+            name_b = name.encode("utf-8")
+            crc = zlib.crc32(data) & 0xFFFFFFFF
+            payload = deflate_raw(data)
+            method = 8 if len(payload) < len(data) else 0
+            if method == 0:
+                payload = data
+            write_entry(name, name_b, method, crc, payload, len(data))
 
-    shutil.rmtree(tmp_dir, ignore_errors=True)
+        cd_start = offset
+        for rec in central:
+            fh.write(rec)
+        cd_size = offset + sum(len(rec) for rec in central) - cd_start
+        # offset was not updated after writing central; compute from lengths
+        cd_size = sum(len(rec) for rec in central)
+        fh.write(
+            struct.pack(
+                "<IHHHHIIH",
+                0x06054B50,
+                0,
+                0,
+                len(central),
+                len(central),
+                cd_size,
+                cd_start,
+                0,
+            )
+        )
+
 
 
 def main() -> None:
