@@ -21,12 +21,19 @@ const CONTROL = 9051;
 const HTTP_TUNNEL = 9080;
 const APP_ID = "com.torva.vpn";
 
-app.setName("Torva VPN");
-app.setAppUserModelId(APP_ID);
-
 function runningFromSfxTemp() {
   const p = String(process.execPath || "").replace(/\//g, "\\").toLowerCase();
   return p.includes("\\temp\\") || p.includes("\\tmp\\") || /\\7z[a-z0-9._-]*\\/i.test(p);
+}
+
+function isStorePackage() {
+  const p = String(process.execPath || "").replace(/\//g, "\\").toLowerCase();
+  return Boolean(process.windowsStore) || p.includes("\\windowsapps\\") || Boolean(process.env.APPX_PACKAGE_FULL_NAME);
+}
+
+app.setName("Torva VPN");
+if (!isStorePackage()) {
+  app.setAppUserModelId(APP_ID);
 }
 
 if (!runningFromSfxTemp()) {
@@ -1073,6 +1080,7 @@ function installDir() {
 
 function writeAppShortcuts(exe) {
   if (process.platform !== "win32") return;
+  if (isStorePackage()) return;
   const dir = path.dirname(exe);
   const icon = fs.existsSync(path.join(dir, "resources", "icon.ico"))
     ? path.join(dir, "resources", "icon.ico")
@@ -1114,6 +1122,7 @@ function copyInstallTree(src, dest) {
 
 function selfInstallIfNeeded() {
   if (process.platform !== "win32") return false;
+  if (isStorePackage()) return false;
   if (process.env.TORVA_SKIP_SELF_INSTALL === "1") {
     writeAppShortcuts(process.execPath);
     return false;

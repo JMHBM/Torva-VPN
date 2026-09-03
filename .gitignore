@@ -2,6 +2,8 @@ node_modules/
 desktop/.cache/
 desktop/dist/
 desktop/dist-renderer/
+desktop/store/Assets/
+desktop/store/AppxManifest.xml
 artifacts/
 *.log
 .DS_Store

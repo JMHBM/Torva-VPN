@@ -14,21 +14,15 @@ Torva is an independent project. It is **not** affiliated with the Tor Project, 
 - Restores the Windows proxy on quit, crash, or launch if a leftover local proxy is still armed
 - First-run End User License Agreement (`EULA.txt`)
 
-## Install (end users)
+## Install
 
-Use a built `TorvaVPN-Setup.exe` on Windows. The installer unpacks, copies itself to:
+**Microsoft Store (planned):** one-time **$9.99**, no ads, no subscriptions, free lifetime updates. Upload `artifacts/TorvaVPN.msix` — see [STORE.md](STORE.md).
 
-`%LOCALAPPDATA%\Programs\TorvaVPN`
+**Sideload:** `TorvaVPN-Setup.exe` copies itself to `%LOCALAPPDATA%\Programs\TorvaVPN` and writes Desktop and Start Menu shortcuts.
 
-and writes **Desktop** and **Start Menu** shortcuts. Quit from the tray, then relaunch from those shortcuts.
-
-Windows SmartScreen may warn on unsigned builds. Choose More info → Run anyway.
-
-If the internet is stuck after a crash, run `Restore-Internet.bat` (also copied to the Desktop).
+If the internet is stuck after a crash, run `Restore-Internet.bat`.
 
 ## Build from source
-
-Requires Node 22+ and a Windows-oriented packager run. The Windows installer is produced by `desktop/build.mjs` (Electron + Tor Expert Bundle + 7-Zip SFX).
 
 ```bash
 npm install
@@ -39,10 +33,11 @@ npm run build:windows
 
 Output:
 
-- `artifacts/TorvaVPN-Setup.exe`
-- `artifacts/TorvaVPN-windows-x64.7z` (portable)
+- `artifacts/TorvaVPN.msix` — unsigned Store package (Store signs on ingest)
+- `artifacts/TorvaVPN-Setup.exe` — 7-Zip SFX installer
+- `artifacts/TorvaVPN-windows-x64.7z` — portable
 
-Build caches (`desktop/.cache`, Electron, Tor expert bundle) are not in this repository.
+Put your Partner Center identity in `desktop/store/identity.json` before a Store build.
 
 ## License
 
@@ -50,7 +45,9 @@ Build caches (`desktop/.cache`, Electron, Tor expert bundle) are not in this rep
 
 You must also accept the [End User License Agreement](EULA.txt) to run the application.
 
-Corresponding source for this program is this repository: https://github.com/JMHBM/Torva-VPN
+Privacy policy: [PRIVACY.md](PRIVACY.md)
+
+Corresponding source: https://github.com/JMHBM/Torva-VPN
 
 ## Disclaimer
 

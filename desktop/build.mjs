@@ -168,3 +168,6 @@ if (existsSync(portable)) rmSync(portable);
 console.log("[torva] writing portable archive");
 run(seven, ["a", "-t7z", "-mx=5", portable, "TorvaVPN"], dist);
 console.log(`[torva] portable ${portable}`);
+
+console.log("[torva] packing MSIX");
+run("python3", [join(dir, "store", "pack-msix.py"), appDir, join(artifacts, "TorvaVPN.msix")], root);

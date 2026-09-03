@@ -1,0 +1,8 @@
+{
+  "name": "JMHBM.TorvaVPN",
+  "publisher": "CN=JMHBM",
+  "publisherDisplayName": "JMHBM",
+  "displayName": "Torva VPN",
+  "version": "1.0.0.0",
+  "description": "Route Windows traffic through the Tor network with a one-click VPN-style client. No ads. No subscriptions. Lifetime updates."
+}
